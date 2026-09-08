@@ -89,9 +89,56 @@ function bufferToHex(buffer: ArrayBuffer): string {
         .join('');
 }
 
+/**
+ * 计算上传文件的稳定缓存键。
+ *
+ * 优先使用 Web Crypto 的 SHA-256；但 Web Crypto 的 subtle API 在通过普通 HTTP
+ * 访问的非安全上下文中可能不存在。图片上传本身不应依赖 HTTPS，因此在该能力
+ * 不可用或调用失败时，改用双路 32 位 FNV-1a 内容哈希作为缓存键。这个降级哈希
+ * 只用于本地上传缓存和重复文件去重，不用于安全校验、签名或权限判断。
+ *
+ * @param file 待计算缓存键的本地图片文件。
+ * @returns 稳定的十六进制缓存键。
+ */
 async function hashFile(file: File): Promise<string> {
-    const digest = await crypto.subtle.digest('SHA-256', await file.arrayBuffer());
-    return bufferToHex(digest);
+    const buffer = await file.arrayBuffer();
+    const subtle = typeof crypto !== 'undefined' ? crypto.subtle : undefined;
+
+    if (subtle) {
+        try {
+            const digest = await subtle.digest('SHA-256', buffer);
+            return bufferToHex(digest);
+        } catch {
+            // 非安全上下文、浏览器策略或运行时实现异常时继续使用本地降级哈希。
+        }
+    }
+
+    return `fallback-${hashBytesForCache(new Uint8Array(buffer))}`;
+}
+
+/**
+ * 在 Web Crypto 不可用时，使用两路 FNV-1a 计算本地缓存专用内容哈希。
+ *
+ * 两个独立的 32 位状态共同组成 64 位十六进制结果，避免把缓存能力绑定到
+ * 安全上下文。每一步都使用 Math.imul 保持 32 位整数乘法语义，避免 JavaScript
+ * 浮点数在大文件遍历时丢失低位信息。
+ *
+ * @param bytes 文件的完整二进制内容。
+ * @returns 由两路 32 位状态拼成的十六进制哈希。
+ */
+function hashBytesForCache(bytes: Uint8Array): string {
+    let first = 0x811c9dc5;
+    let second = 0x9e3779b1;
+
+    for (const byte of bytes) {
+        first = Math.imul(first ^ byte, 0x01000193);
+        second = Math.imul(second ^ byte, 0x01000193);
+    }
+
+    first = Math.imul(first ^ bytes.length, 0x01000193);
+    second = Math.imul(second ^ bytes.length, 0x01000193);
+
+    return `${(first >>> 0).toString(16).padStart(8, '0')}${(second >>> 0).toString(16).padStart(8, '0')}`;
 }
 
 function readFileAsDataUrl(file: Blob): Promise<string> {
