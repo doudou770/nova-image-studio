@@ -11,6 +11,7 @@ const {
   getVideoDownloadHeaders,
   getVideoPollPath,
   normalizeVideoPollResult,
+  resolveVideoRemoteUrl,
 } = loadCommonJs(path.resolve(testDir, '../../../../backend/video-protocols.js'));
 
 const request = {
@@ -95,6 +96,15 @@ describe('视频协议适配器', () => {
     expect(getCreatedVideoTaskId('xai', { request_id: 'native-id', id: 'compatible-id' })).toBe('native-id');
     expect(getCreatedVideoTaskId('new-api', { task_id: 'native-id', id: 'compatible-id' })).toBe('native-id');
     expect(getCreatedVideoTaskId('openai', { id: '   ' })).toBe('');
+  });
+
+  it('将上游返回的绝对、根相对和普通相对视频地址统一解析为绝对地址', () => {
+    expect(resolveVideoRemoteUrl('https://cdn.example/video.mp4', 'https://api.example/v1')).toBe('https://cdn.example/video.mp4');
+    expect(resolveVideoRemoteUrl('/v1/videos/task/content', 'https://api.example/v1')).toBe('https://api.example/v1/videos/task/content');
+    expect(normalizeVideoPollResult('xai', { status: 'done', video: { url: '/v1/videos/task/content' } }, 'https://api.example', 'task')).toEqual({
+      state: 'completed',
+      remoteUrl: 'https://api.example/v1/videos/task/content',
+    });
   });
 
   it('轮询响应跨协议兼容直接视频地址并统一识别失败状态', () => {

@@ -160,6 +160,30 @@ function getVideoPollPath(protocol, taskId) {
 }
 
 /**
+ * 将上游视频结果地址解析为可供服务端下载的绝对 HTTP(S) 地址。
+ *
+ * 上游兼容服务可能返回完整 URL，也可能只返回以 /v1 开头的站内路径，
+ * 甚至返回不带开头斜杠的相对路径。完整 URL 保持原样；路径形式统一基于
+ * 配置的 Base URL 解析，避免把相对路径直接传给 Node.js 的 URL 构造器。
+ *
+ * @param {string} remoteUrl 上游返回的视频地址。
+ * @param {string} baseUrl 用户配置并已规范化的上游基础地址。
+ * @returns {string} 可供 fetch 使用的绝对视频地址。
+ */
+function resolveVideoRemoteUrl(remoteUrl, baseUrl) {
+  const value = String(remoteUrl || '').trim();
+  if (!value) return '';
+
+  try {
+    return new URL(value).toString();
+  } catch {
+    const base = new URL(String(baseUrl || '').trim());
+    const path = value.startsWith('/') ? value : `/${value}`;
+    return new URL(path, base.origin).toString();
+  }
+}
+
+/**
  * 规范化三种协议的任务状态与结果下载地址。
  * @param {'new-api' | 'openai' | 'xai' | 'legacy-openai-video'} protocol 视频协议。
  * @param {Record<string, any>} data 上游任务响应。
@@ -173,7 +197,7 @@ function normalizeVideoPollResult(protocol, data, baseUrl, taskId) {
 
   // 不论请求协议为何，优先识别第三方兼容服务常见的两种直接结果地址。
   const remoteUrl = [data?.video?.url, data?.url].find(value => typeof value === 'string' && value.trim());
-  if (remoteUrl) return { state: 'completed', remoteUrl: remoteUrl.trim() };
+  if (remoteUrl) return { state: 'completed', remoteUrl: resolveVideoRemoteUrl(remoteUrl, baseUrl) };
 
   // OpenAI 官方完成态不返回结果 URL，需要通过同一任务的 content 端点下载。
   if (status === 'completed' && protocol === 'openai') {
@@ -191,4 +215,5 @@ module.exports = {
   getVideoPollPath,
   isVideoProtocol,
   normalizeVideoPollResult,
+  resolveVideoRemoteUrl,
 };
