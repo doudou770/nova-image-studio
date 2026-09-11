@@ -57,10 +57,6 @@ export function WorkspaceShell() {
   const galleryConfig = usePromptGalleryConfig();
   const promptGallery = usePromptGalleryAccess(galleryConfig.mode, galleryConfig.passwordEnabled, setError, () => setActiveTab('prompt-gallery'), locale);
 
-  useEffect(() => {
-    // 工作台完成首次挂载后移除根布局中的启动遮罩，避免遮罩永久覆盖页面。
-    document.getElementById('app-boot-loader')?.remove();
-  }, []);
 
   // Toast state
   const [toasts, setToasts] = useState<ToastData[]>([]);
@@ -235,8 +231,16 @@ export function WorkspaceShell() {
     }
   }, [generationClearScope, workspace]);
 
+  useEffect(() => {
+    // 运行时配置加载完成后再移除根布局启动遮罩，确保整个启动阶段只显示一个加载状态。
+    if (galleryConfig.ready) {
+      document.getElementById('app-boot-loader')?.remove();
+    }
+  }, [galleryConfig.ready]);
+
   if (!galleryConfig.ready) {
-    return <div className="flex min-h-screen items-center justify-center bg-background"><div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>;
+    // 启动遮罩由根布局统一负责；这里不再渲染第二个加载动画，避免重复显示。
+    return null;
   }
 
   return (
