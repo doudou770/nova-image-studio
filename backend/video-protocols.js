@@ -57,7 +57,7 @@ function formatVideoResolution(resolution) {
 
 /**
  * 根据协议构造视频创建请求。
- * @param {'new-api' | 'openai' | 'xai' | 'legacy-openai-video'} protocol 视频协议。
+ * @param {'new-api' | 'openai' | 'xai'} protocol 视频协议。
  * @param {string} apiKey 上游 API Key。
  * @param {{ model: string, prompt: string, resolution: number, size: string, aspectRatio: string, seconds: number }} request 工作台生成参数。
  * @param {{ images: Array<{ filename: string, mimeType: string, buffer: Buffer }>, videos: Array<{ filename: string, mimeType: string, buffer: Buffer }>, audios: Array<{ filename: string, mimeType: string, buffer: Buffer }> }} files 参考附件集合。
@@ -76,24 +76,12 @@ function createVideoRequest(protocol, apiKey, request, files) {
     body.append('seconds', String(request.seconds));
     if (request.size !== 'auto') body.append('size', request.size);
     body.append('resolution', formatVideoResolution(request.resolution));
+    body.append('aspect_ratio', request.aspectRatio);
     if (image) body.append('input_reference', new Blob([image.buffer], { type: image.mimeType }), image.filename);
     appendMediaFiles(body, 'reference_images', images.slice(1));
     appendMediaFiles(body, 'reference_videos', videos);
     appendMediaFiles(body, 'reference_audios', audios);
     return { path: '/v1/videos', init: { method: 'POST', headers: authorization, body } };
-  }
-
-  if (protocol === 'legacy-openai-video') {
-    const common = { model: request.model, prompt: request.prompt, resolution: request.resolution, size: request.size, seconds: request.seconds };
-    if (images.length > 0 || videos.length > 0 || audios.length > 0) {
-      const body = new FormData();
-      for (const [key, value] of Object.entries(common)) body.append(key, String(value));
-      appendMediaFiles(body, 'reference_images', images);
-      appendMediaFiles(body, 'reference_videos', videos);
-      appendMediaFiles(body, 'reference_audios', audios);
-      return { path: '/v1/videos/generations', init: { method: 'POST', headers: authorization, body } };
-    }
-    return { path: '/v1/videos/generations', init: { method: 'POST', headers: { ...authorization, 'Content-Type': 'application/json' }, body: JSON.stringify(common) } };
   }
 
   if (protocol === 'new-api') {
@@ -110,6 +98,7 @@ function createVideoRequest(protocol, apiKey, request, files) {
       prompt: request.prompt,
       duration: request.seconds,
       seconds: String(request.seconds),
+      aspect_ratio: request.aspectRatio,
       metadata,
     };
     if (request.size !== 'auto') payload.size = request.size;
@@ -134,7 +123,7 @@ function createVideoRequest(protocol, apiKey, request, files) {
 
 /**
  * 从不同协议的创建响应中读取任务标识。
- * @param {'new-api' | 'openai' | 'xai' | 'legacy-openai-video'} protocol 视频协议。
+ * @param {'new-api' | 'openai' | 'xai'} protocol 视频协议。
  * @param {Record<string, unknown> | null} data 上游 JSON 响应。
  * @returns {string} 上游任务标识；缺失时返回空字符串。
  */
@@ -150,7 +139,7 @@ function getCreatedVideoTaskId(protocol, data) {
 
 /**
  * 返回指定协议的任务查询路径。
- * @param {'new-api' | 'openai' | 'xai' | 'legacy-openai-video'} protocol 视频协议。
+ * @param {'new-api' | 'openai' | 'xai'} protocol 视频协议。
  * @param {string} taskId 上游任务标识。
  * @returns {string} 已编码任务标识的查询路径。
  */
@@ -185,7 +174,7 @@ function resolveVideoRemoteUrl(remoteUrl, baseUrl) {
 
 /**
  * 规范化三种协议的任务状态与结果下载地址。
- * @param {'new-api' | 'openai' | 'xai' | 'legacy-openai-video'} protocol 视频协议。
+ * @param {'new-api' | 'openai' | 'xai'} protocol 视频协议。
  * @param {Record<string, any>} data 上游任务响应。
  * @param {string} baseUrl 已规范化的上游基础地址。
  * @param {string} taskId 上游任务标识。

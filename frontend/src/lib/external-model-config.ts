@@ -87,14 +87,14 @@ function normalizeVideoProtocol(value: string | null): PublicVideoProtocol | und
 }
 
 /**
- * 区分新协议字段与历史 provider 字段，避免旧视频外链被静默改为 Sora 端点。
+ * 将显式协议字段与历史 provider 字段统一解析为当前支持的视频协议。
  * @param explicitProtocol 新版外链显式提供的 protocol 字段。
  * @param legacyProvider 旧版外链提供的 provider 字段。
- * @returns 新版公开视频协议或旧版兼容协议；字段非法时返回 undefined。
+ * @returns 当前支持的公开视频协议；字段非法时返回 undefined。
  */
 function resolveExternalVideoProtocol(explicitProtocol: string | null, legacyProvider: string | null): VideoProtocol | undefined {
   if (explicitProtocol) return normalizeVideoProtocol(explicitProtocol);
-  if (!legacyProvider || legacyProvider === 'openai') return 'legacy-openai-video';
+  if (!legacyProvider || legacyProvider === 'openai') return 'openai';
   return normalizeVideoProtocol(legacyProvider);
 }
 
@@ -279,7 +279,7 @@ export function getExternalVideoModelMatch(models: VideoModelConfig[], config: E
     const byKey = models.find(model => model.id === config.modelKey);
     if (byKey) return byKey;
   }
-  const protocol = config.protocol || 'legacy-openai-video';
+  const protocol = config.protocol || 'openai';
   const name = config.name?.trim().toLowerCase();
   const modelId = config.modelId?.trim().toLowerCase();
   const baseUrl = config.baseUrl?.trim().replace(/\/+$/, '').toLowerCase();

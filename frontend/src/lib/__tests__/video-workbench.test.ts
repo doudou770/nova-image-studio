@@ -69,26 +69,6 @@ describe('视频模型注册表与工作台配置', () => {
     }]);
   });
 
-  it('把注册表 v1 的 openai 视频模型迁移为隐藏的旧兼容协议', () => {
-    localStorage.setItem('flyreq-model-registry', JSON.stringify({
-      imageModels: [],
-      textModels: [],
-      videoModels: [{
-        id: 'legacy-video',
-        protocol: 'openai',
-        name: 'Legacy Video',
-        modelId: 'old-model',
-        apiKey: 'key',
-        baseUrl: 'https://video.example.com',
-      }],
-      defaults: { videoGeneration: 'legacy-video' },
-    }));
-
-    const registry = loadRegistry();
-    expect(registry.schemaVersion).toBe(2);
-    expect(registry.videoModels[0].protocol).toBe('legacy-openai-video');
-  });
-
   it('应用部署视频模型且仅在 API Key 完整后对工作台可用', () => {
     applyDeploymentDefaultVideoModel({ id: 'video-one', name: 'Video One', modelId: 'video-model', baseUrl: 'https://video.example.com', protocol: 'openai' });
     const registry = loadRegistry();

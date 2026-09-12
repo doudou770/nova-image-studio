@@ -663,7 +663,7 @@ https://image.flyreq.com/zh/?provider={"type":"video","protocol":"openai","model
 FLYREQ_VIDEO_PROTOCOL_CONFIG_OVERRIDES={"protocols":{"xai":{"parameters":{"duration":{"presets":[3,6,9]}}}}}
 ```
 
-覆盖遵循 JSON Merge Patch：对象递归合并，数组整体替换，`null` 删除字段。配置版本、未知协议和不完整能力会在服务端被拒绝。注册表 v1 中原来的 `openai` 视频模型会迁移为隐藏的 `legacy-openai-video`，继续沿用旧 `/v1/videos/generations` 行为；在设置页明确选择新协议后，模型才切换到对应官方端点。
+覆盖遵循 JSON Merge Patch：对象递归合并，数组整体替换，`null` 删除字段。配置版本、未知协议和不完整能力会在服务端被拒绝。历史注册表中的非法或旧视频协议会统一归一化为当前的 `openai` 协议；`new-api`、`openai` 和 `xai` 三种协议都会发送 `aspect_ratio`，各协议仍按自身能力配置决定尺寸、清晰度及其他控件。
 
 ---
 

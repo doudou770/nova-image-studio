@@ -1015,9 +1015,9 @@ describe('VideoGenerationWorkspace', () => {
     expect(screen.getAllByText('16:9').length).toBeGreaterThan(0);
     expect(screen.getAllByText('9:16').length).toBeGreaterThan(0);
     for (const ratio of ['1:1', '3:4', '4:3', '3:2', '2:3', '9:16', '16:9', '21:9']) {
-      expect(screen.getByRole('button', { name: ratio })).toBeInTheDocument();
+      expect(screen.getAllByRole('button', { name: ratio }).length).toBeGreaterThan(0);
     }
-    const portraitCard = screen.getByRole('button', { name: '9:16' });
+    const portraitCard = screen.getAllByRole('button', { name: '9:16' })[0];
     fireEvent.click(portraitCard);
     expect(portraitCard).toHaveClass('border-primary');
     expect(screen.getByLabelText('Width')).toHaveValue('720');
@@ -1038,7 +1038,7 @@ describe('VideoGenerationWorkspace', () => {
 
     expect(screen.getByTestId('video-resolution-icon')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '480p' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '16:9' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: '16:9' }).length).toBeGreaterThan(0);
     expect(screen.queryByRole('button', { name: '1280x720' })).not.toBeInTheDocument();
   });
 
@@ -1059,7 +1059,7 @@ describe('VideoGenerationWorkspace', () => {
     expect(screen.getByText('Add video')).toBeInTheDocument();
     expect(screen.getByText('Add audio')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Describe the scene, motion, camera, pacing, and sound you want…')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '16:9' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: '16:9' }).length).toBeGreaterThan(0);
     expect(screen.getByText('Not configured')).toBeInTheDocument();
     expect(screen.getByText('Configure a video model to generate')).toBeInTheDocument();
     const configureButton = screen.getAllByRole('button', { name: 'Configure video model' }).find(button => !button.hasAttribute('disabled'));

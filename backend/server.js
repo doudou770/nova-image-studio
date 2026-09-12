@@ -1594,7 +1594,7 @@ async function normalizeVideoTaskPayload(fields, files) {
   const aspectRatio = String(fields.aspectRatio || '').trim();
   const parallelCount = Number(fields.parallelCount || 1);
   const rawProtocol = String(fields.protocol || '').trim();
-  const protocol = rawProtocol || 'legacy-openai-video';
+  const protocol = rawProtocol || 'openai';
   if (!String(fields.apiKey || '').trim()) throw new Error('缺少 API 密钥');
   if (!String(fields.baseUrl || '').trim()) throw new Error('缺少 API 基础地址');
   if (!String(fields.model || '').trim()) throw new Error('模型名称不能为空');
@@ -1616,7 +1616,7 @@ async function normalizeVideoTaskPayload(fields, files) {
     source: 'flyreq',
     protocol,
     apiKey: String(fields.apiKey).trim(),
-    baseUrl: normalizeProtocolBaseUrl('openai', fields.baseUrl),
+    baseUrl: normalizeProtocolBaseUrl(protocol, fields.baseUrl),
     model: String(fields.model).trim(),
     modelName: String(fields.modelName || fields.model).trim().slice(0, 200),
     prompt: String(fields.prompt).trim(),
@@ -2674,9 +2674,9 @@ function createVideoTaskBatch(payload, files, req) {
  * @returns 上游视频任务标识。
  */
 async function createUpstreamVideo(apiKey, request, files, signal, trace) {
-  const baseUrl = resolveAndLogOutboundBaseUrl('视频生成', 'openai', request.baseUrl).baseUrl;
+  const baseUrl = resolveAndLogOutboundBaseUrl('视频生成', request.protocol, request.baseUrl).baseUrl;
   const upstreamRequest = createVideoRequest(request.protocol, apiKey, request, files);
-  const url = appendProtocolApiPath('openai', baseUrl, upstreamRequest.path);
+  const url = appendProtocolApiPath(request.protocol, baseUrl, upstreamRequest.path);
   const fetchInit = { ...upstreamRequest.init, signal };
   const logOptions = getVideoUpstreamLogOptions();
   const context = getVideoTaskLogContext(trace, { protocol: request.protocol });
@@ -2711,8 +2711,8 @@ async function pollUpstreamVideo(apiKey, request, upstreamTaskId, signal, trace)
   const env = getRuntimeEnv();
   const intervalMs = parseIntegerEnv(env.FLYREQ_VIDEO_POLL_INTERVAL_MS, 5000, { min: 1000, max: 60000 });
   const timeoutMs = parseIntegerEnv(env.FLYREQ_VIDEO_TIMEOUT_MS, 1800000, { min: 10000, max: 24 * 60 * 60 * 1000 });
-  const baseUrl = resolveAndLogOutboundBaseUrl('视频任务轮询', 'openai', request.baseUrl).baseUrl;
-  const url = appendProtocolApiPath('openai', baseUrl, getVideoPollPath(request.protocol, upstreamTaskId));
+  const baseUrl = resolveAndLogOutboundBaseUrl('视频任务轮询', request.protocol, request.baseUrl).baseUrl;
+  const url = appendProtocolApiPath(request.protocol, baseUrl, getVideoPollPath(request.protocol, upstreamTaskId));
   const deadline = Date.now() + timeoutMs;
   const logOptions = getVideoUpstreamLogOptions();
   while (Date.now() < deadline) {

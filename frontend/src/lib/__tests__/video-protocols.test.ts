@@ -59,6 +59,7 @@ describe('视频协议适配器', () => {
     expect(upstream.init.body.get('model')).toBe('video-model');
     expect(upstream.init.body.get('input_reference')).toBeInstanceOf(Blob);
     expect(upstream.init.body.get('resolution')).toBe('720p');
+    expect(upstream.init.body.get('aspect_ratio')).toBe('16:9');
     expect(upstream.init.body.has('reference_images')).toBe(false);
     expect(upstream.init.body.getAll('reference_videos')).toHaveLength(1);
     expect(upstream.init.body.getAll('reference_audios')).toHaveLength(1);
@@ -91,7 +92,6 @@ describe('视频协议适配器', () => {
     expect(getCreatedVideoTaskId('openai', { request_id: 'request-openai' })).toBe('request-openai');
     expect(getCreatedVideoTaskId('xai', { id: 'video-xai' })).toBe('video-xai');
     expect(getCreatedVideoTaskId('new-api', { id: 'video-new-api' })).toBe('video-new-api');
-    expect(getCreatedVideoTaskId('legacy-openai-video', { task_id: 'task-legacy' })).toBe('task-legacy');
     expect(getCreatedVideoTaskId('openai', { id: 'native-id', request_id: 'compatible-id' })).toBe('native-id');
     expect(getCreatedVideoTaskId('xai', { request_id: 'native-id', id: 'compatible-id' })).toBe('native-id');
     expect(getCreatedVideoTaskId('new-api', { task_id: 'native-id', id: 'compatible-id' })).toBe('native-id');
@@ -147,24 +147,5 @@ describe('视频协议适配器', () => {
     expect(getCreatedVideoTaskId('xai', { request_id: 'request-xai' })).toBe('request-xai');
     expect(getVideoPollPath('xai', 'request-xai')).toBe('/v1/videos/request-xai');
     expect(normalizeVideoPollResult('xai', { video: { url: 'https://cdn.x.ai/video.mp4' } }, 'https://api.x.ai', 'request-xai')).toEqual({ state: 'completed', remoteUrl: 'https://cdn.x.ai/video.mp4' });
-  });
-
-  it('保留旧注册表模型使用的 OpenAI 兼容生成端点', () => {
-    const upstream = createVideoRequest('legacy-openai-video', 'key', request, { images: [] });
-    expect(upstream.path).toBe('/v1/videos/generations');
-    expect(JSON.parse(upstream.init.body)).toEqual(expect.objectContaining({
-      model: 'video-model',
-      resolution: 720,
-      size: '1280x720',
-      seconds: 8,
-    }));
-  });
-
-  it('旧兼容协议不会丢弃声明支持的参考媒体', () => {
-    const upstream = createVideoRequest('legacy-openai-video', 'key', request, files);
-    expect(upstream.init.body).toBeInstanceOf(FormData);
-    expect(upstream.init.body.getAll('reference_images')).toHaveLength(1);
-    expect(upstream.init.body.getAll('reference_videos')).toHaveLength(1);
-    expect(upstream.init.body.getAll('reference_audios')).toHaveLength(1);
   });
 });

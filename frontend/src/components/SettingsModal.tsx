@@ -86,7 +86,7 @@ type ImageModelKeyGuide = typeof IMAGE_MODEL_KEY_GUIDE;
 
 /**
  * 从后端下发的协议能力配置读取设置页模板。
- * @param protocol 设置页选择的公开视频协议或外链迁移使用的旧版协议。
+ * @param protocol 设置页选择的公开视频协议。
  * @returns 当前部署为该协议配置的基础地址与预设模型 ID。
  */
 function getVideoProtocolTemplate(protocol: VideoProtocol): { baseUrl: string; presetModelId: string } {
@@ -94,7 +94,7 @@ function getVideoProtocolTemplate(protocol: VideoProtocol): { baseUrl: string; p
 }
 
 /**
- * 读取视频协议的创建接口，并兼容尚未下发接口元数据的旧版后端配置。
+ * 读取视频协议的创建接口，并兼容尚未下发接口元数据的后端配置。
  * @param protocol 当前视频模型协议。
  * @returns 创建视频使用的固定请求方法与接口路径。
  */
@@ -488,7 +488,7 @@ function patchTextModelFromExternal(model: TextModelConfig, config: ExternalText
  * @returns 可在设置页继续补充并手动保存的视频模型。
  */
 function createExternalVideoModelDraft(config: ExternalVideoModelConfig): VideoModelConfig {
-  const protocol = config.protocol || 'legacy-openai-video';
+  const protocol = config.protocol || 'openai';
   const template = getVideoProtocolTemplate(protocol);
   const presetModelId = template.presetModelId;
   const configuredModelId = config.modelId?.trim() || '';
@@ -1405,7 +1405,6 @@ export function SettingsModal({ isOpen, onClose, onApiKeyChange, externalModelCo
                         value={selectedVideoModel.protocol}
                         onValueChange={(value) => handleChangeVideoProtocol(selectedVideoModel.id, value as PublicVideoProtocol)}
                         options={[
-                          ...(selectedVideoModel.protocol === 'legacy-openai-video' ? [{ value: 'legacy-openai-video', label: t('settings.legacyVideoProtocol'), disabled: true }] : []),
                           { value: 'new-api', label: 'New API' },
                           { value: 'openai', label: 'OpenAI Videos (Sora)' },
                           { value: 'xai', label: 'xAI Videos' },
@@ -1415,7 +1414,6 @@ export function SettingsModal({ isOpen, onClose, onApiKeyChange, externalModelCo
                         {t('settings.videoCreateEndpoint')}: <code className="font-mono text-foreground">{selectedVideoCreateEndpoint.method} {selectedVideoCreateEndpoint.path}</code>
                       </p>}
                       {selectedVideoModel.protocol === 'new-api' && <p className="text-xs text-muted-foreground">{t('settings.newApiResolutionDescription')}</p>}
-                      {selectedVideoModel.protocol === 'legacy-openai-video' && <p className="text-xs text-amber-600 dark:text-amber-400">{t('settings.legacyVideoProtocolDescription')}</p>}
                     </div>
                     <div className="space-y-2"><label className="text-xs text-muted-foreground">{t('settings.displayName')}</label><Input value={selectedVideoModel.name} onChange={event => handleUpdateVideoModel(selectedVideoModel.id, { name: event.target.value })} /></div>
                     <div className="space-y-2"><label className="text-xs text-muted-foreground">{t('settings.baseUrl')}</label><Input value={selectedVideoModel.baseUrl} onChange={event => handleUpdateVideoModel(selectedVideoModel.id, { baseUrl: event.target.value })} /></div>
