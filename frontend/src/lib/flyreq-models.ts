@@ -37,7 +37,7 @@ export interface TextModelConfig {
 }
 
 export type PublicVideoProtocol = 'new-api' | 'openai' | 'xai';
-export type VideoProtocol = PublicVideoProtocol | 'legacy-openai-video';
+export type VideoProtocol = PublicVideoProtocol;
 
 export interface VideoModelConfig {
   id: string;
@@ -280,7 +280,7 @@ function getDeploymentDefaultImageModels(): ImageModelConfig[] {
 }
 
 /**
- * 归一化视频模型配置并保留其公开视频或旧版迁移协议。
+ * 归一化视频模型配置并限制为当前支持的公开视频协议。
  * @param raw 从本地存储或部署配置读取的原始视频模型数据。
  * @returns 规范化后的视频模型；缺少内部标识时返回 null。
  */
@@ -294,7 +294,7 @@ function normalizeVideoModelConfig(raw: Partial<VideoModelConfig>): VideoModelCo
     || configuredModelId === presetModelId;
   return {
     id,
-    protocol: raw.protocol === 'new-api' || raw.protocol === 'xai' || raw.protocol === 'openai' || raw.protocol === 'legacy-openai-video' ? raw.protocol : 'openai',
+    protocol: raw.protocol === 'new-api' || raw.protocol === 'xai' || raw.protocol === 'openai' ? raw.protocol : 'openai',
     name: String(raw.name || '').trim(),
     modelId: usesPresetModelId ? '' : configuredModelId,
     usesPresetModelId: usesPresetModelId || undefined,
@@ -409,13 +409,12 @@ function ensureTextModels(raw?: unknown): TextModelConfig[] {
  * @param raw 本地存储中的视频模型原始值。
  * @returns 去重后的模型列表；缺失时返回部署默认模型。
  */
-function ensureVideoModels(raw?: unknown, migrateLegacy = false): VideoModelConfig[] {
+function ensureVideoModels(raw?: unknown): VideoModelConfig[] {
   if (!Array.isArray(raw)) return getDeploymentDefaultVideoModels();
   if (raw.length === 0) return [];
   const models = raw
     .map(item => {
       const candidate = { ...(item || {}) } as Partial<VideoModelConfig>;
-      if (migrateLegacy && candidate.protocol === 'openai') candidate.protocol = 'legacy-openai-video';
       return normalizeVideoModelConfig(candidate);
     })
     .filter((item): item is VideoModelConfig => Boolean(item))
@@ -473,7 +472,7 @@ export function loadRegistry(): FlyreqModelRegistry {
 
     const parsed = JSON.parse(raw) as Partial<FlyreqModelRegistry>;
     const imageModels = ensureImageModels(parsed.imageModels);
-    const videoModels = ensureVideoModels(parsed.videoModels, parsed.schemaVersion !== 2);
+    const videoModels = ensureVideoModels(parsed.videoModels);
     const textModels = ensureTextModels(parsed.textModels);
     const defaults = ensureDefaults(parsed.defaults, imageModels, videoModels, textModels);
     return { schemaVersion: 2, imageModels, videoModels, textModels, defaults };

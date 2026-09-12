@@ -78,7 +78,7 @@ describe('external model config URL parser', () => {
     }))}`);
 
     expect(parseExternalModelConfig(textUrl)).toMatchObject({ type: 'text', protocol: 'google', modelKey: 'text-one', note: 'Gemini protocol' });
-    expect(parseExternalModelConfig(videoUrl)).toMatchObject({ type: 'video', protocol: 'legacy-openai-video', modelKey: 'video-one', modelId: 'grok-imagine-video' });
+    expect(parseExternalModelConfig(videoUrl)).toMatchObject({ type: 'video', protocol: 'openai', modelKey: 'video-one', modelId: 'grok-imagine-video' });
   });
 
   it('accepts New API and xAI video protocols from external links', () => {
@@ -97,7 +97,7 @@ describe('external model config URL parser', () => {
       type: 'video', protocol: 'openai', modelId: 'sora-2',
     }))}`);
 
-    expect(parseExternalModelConfig(legacyUrl)).toMatchObject({ type: 'video', protocol: 'legacy-openai-video' });
+    expect(parseExternalModelConfig(legacyUrl)).toMatchObject({ type: 'video', protocol: 'openai' });
     expect(parseExternalModelConfig(soraUrl)).toMatchObject({ type: 'video', protocol: 'openai' });
   });
 
@@ -144,7 +144,7 @@ describe('external model config URL parser', () => {
 
   it('matches existing text and video models by stable key or signature', () => {
     const textModels: TextModelConfig[] = [{ id: 'text-one', protocol: 'openai', name: 'Text One', modelId: 'gpt-5.4-mini', apiKey: '', baseUrl: 'https://text.example.com' }];
-    const videoModels: VideoModelConfig[] = [{ id: 'video-one', protocol: 'legacy-openai-video', name: 'Video One', modelId: '', usesPresetModelId: true, presetModelId: 'grok-imagine-video', apiKey: '', baseUrl: 'https://video.example.com' }];
+    const videoModels: VideoModelConfig[] = [{ id: 'video-one', protocol: 'openai', name: 'Video One', modelId: '', usesPresetModelId: true, presetModelId: 'grok-imagine-video', apiKey: '', baseUrl: 'https://video.example.com' }];
 
     expect(getExternalTextModelMatch(textModels, { type: 'text', name: 'Text One', modelId: 'gpt-5.4-mini', baseUrl: 'https://text.example.com/' })?.id).toBe('text-one');
     expect(getExternalVideoModelMatch(videoModels, { type: 'video', name: 'Video One', modelId: 'grok-imagine-video', baseUrl: 'https://video.example.com/' })?.id).toBe('video-one');

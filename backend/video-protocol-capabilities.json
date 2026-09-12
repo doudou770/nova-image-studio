@@ -10,7 +10,7 @@
       "parameters": {
         "duration": { "mode": "range", "min": 1, "max": 60, "presets": [6, 10, 12, 15, 20] },
         "size": { "visible": true, "mode": "dimensions", "values": ["1280x720", "1920x1080", "1792x1024", "1024x1024", "720x1280", "1080x1920", "1024x1792"], "allowCustom": true },
-        "aspectRatio": { "visible": false, "values": [] },
+        "aspectRatio": { "visible": true, "values": ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3", "21:9"] },
         "resolution": { "visible": true, "values": [480, 720, 1080, 2160], "allowCustom": true }
       },
       "references": { "images": 9, "videos": 3, "audios": 3, "imageMimeTypes": ["image/*"], "videoMimeTypes": ["video/*"], "audioMimeTypes": ["audio/*"], "imageSizeMustMatchOutput": false },
@@ -25,7 +25,7 @@
       "parameters": {
         "duration": { "mode": "range", "min": 1, "max": 60, "presets": [4, 8, 12, 16, 20] },
         "size": { "visible": true, "mode": "dimensions", "values": ["1280x720", "1920x1080", "1792x1024", "1024x1024", "720x1280", "1080x1920", "1024x1792"], "allowCustom": true },
-        "aspectRatio": { "visible": false, "values": [] },
+        "aspectRatio": { "visible": true, "values": ["1:1", "16:9", "9:16", "4:3", "3:4", "3:2", "2:3", "21:9"] },
         "resolution": { "visible": true, "values": [480, 720, 1080, 2160], "allowCustom": true }
       },
       "references": { "images": 9, "videos": 3, "audios": 3, "imageMimeTypes": ["image/jpeg", "image/png", "image/webp"], "videoMimeTypes": ["video/*"], "audioMimeTypes": ["audio/*"], "imageSizeMustMatchOutput": false },
@@ -61,21 +61,6 @@
           "patch": { "parameters": { "resolution": { "values": [480, 720, 1080] } } }
         }
       ]
-    },
-    "legacy-openai-video": {
-      "label": "旧版视频协议（待迁移）",
-      "hidden": true,
-      "constraintSource": "legacy",
-      "settings": { "baseUrl": "https://flyreq.com", "presetModelId": "grok-imagine-video" },
-      "createEndpoint": { "method": "POST", "path": "/v1/videos/generations" },
-      "parameters": {
-        "duration": { "mode": "range", "min": 1, "max": 60, "presets": [6, 10, 12, 15, 20] },
-        "size": { "visible": true, "mode": "dimensions", "values": ["1280x720", "720x1280", "1024x1024", "1792x1024", "1024x1792", "auto"], "allowCustom": true },
-        "aspectRatio": { "visible": false, "values": [] },
-        "resolution": { "visible": true, "values": [480, 720, 1080, 2160], "allowCustom": true }
-      },
-      "references": { "images": 9, "videos": 3, "audios": 3, "imageMimeTypes": ["image/*"], "videoMimeTypes": ["video/*"], "audioMimeTypes": ["audio/*"], "imageSizeMustMatchOutput": false },
-      "modelProfiles": []
     }
   }
 }

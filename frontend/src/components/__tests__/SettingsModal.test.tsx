@@ -402,22 +402,5 @@ describe('SettingsModal unsaved configuration', () => {
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument();
   });
 
-  it('warns before changing a video model migrated from registry schema v1', async () => {
-    localStorage.setItem('flyreq-model-registry', JSON.stringify({
-      imageModels: [],
-      textModels: [],
-      videoModels: [{
-        id: 'legacy-video',
-        protocol: 'openai',
-        name: 'Legacy Video',
-        modelId: 'old-model',
-        apiKey: 'key',
-        baseUrl: 'https://video.example.com',
-      }],
-      defaults: { videoGeneration: 'legacy-video' },
-    }));
 
-    renderSettings();
-    expect(await screen.findByText('This model was migrated from registry schema v1. Select one of the three supported protocols before changing its endpoint behavior.')).toBeInTheDocument();
-  });
 });

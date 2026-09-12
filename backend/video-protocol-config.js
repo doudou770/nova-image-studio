@@ -2,7 +2,7 @@ const defaultConfig = require('./video-protocol-capabilities.json');
 const sharp = require('sharp');
 
 const PUBLIC_VIDEO_PROTOCOLS = new Set(['new-api', 'openai', 'xai']);
-const ALL_VIDEO_PROTOCOLS = new Set([...PUBLIC_VIDEO_PROTOCOLS, 'legacy-openai-video']);
+const ALL_VIDEO_PROTOCOLS = new Set(PUBLIC_VIDEO_PROTOCOLS);
 const MAX_VIDEO_DURATION_SECONDS = 60;
 const MIN_VIDEO_RESOLUTION = 144;
 const MAX_VIDEO_RESOLUTION = 4320;

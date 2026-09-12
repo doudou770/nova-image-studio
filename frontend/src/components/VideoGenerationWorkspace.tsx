@@ -1126,6 +1126,7 @@ export function VideoGenerationWorkspace({ wideMode = false, onConfigureApiKey, 
    */
   const updateVideoSizeFromAspectRatio = useCallback((ratio: string, resolutionValue: number): void => {
     setSizeAspectRatio(ratio);
+    if (protocolProfile.parameters.aspectRatio.values.includes(ratio)) setAspectRatio(ratio);
     if (sizeCapability.allowCustom) {
       const dimensions = getVideoDimensionsForAspectRatio(ratio, resolutionValue);
       const parsed = getVideoSizeDimensions(dimensions);
@@ -1144,7 +1145,7 @@ export function VideoGenerationWorkspace({ wideMode = false, onConfigureApiKey, 
       setCustomHeight(dimensions.height);
       setSizeMode('preset');
     }
-  }, [sizeCapability.allowCustom, sizeCapability.values]);
+  }, [protocolProfile.parameters.aspectRatio.values, sizeCapability.allowCustom, sizeCapability.values]);
   const sizeAspectRatioOptions = useMemo(
     () => sizeCapability.allowCustom
       ? [...VIDEO_ASPECT_RATIO_OPTIONS]
@@ -1655,9 +1656,9 @@ export function VideoGenerationWorkspace({ wideMode = false, onConfigureApiKey, 
                       </button>}
                     </div>
                     {sizeCapability.allowCustom && <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-end gap-2 pt-1">
-                      <label className="space-y-1"><span className="text-[11px] text-muted-foreground">{t('video.customWidth')}</span><Input className="h-8 w-full rounded-md px-2 text-xs" inputMode="numeric" value={customWidth} placeholder={t('video.customWidth')} onChange={event => { const width = event.target.value; setCustomWidth(width); const value = `${width}x${customHeight}`; if (isValidVideoSize(value)) { setVideoSize(value); setSizeMode('custom'); const ratio = getVideoSizeAspectRatio(value); if (isCommonVideoAspectRatio(ratio)) setSizeAspectRatio(ratio); } }} /></label>
+                      <label className="space-y-1"><span className="text-[11px] text-muted-foreground">{t('video.customWidth')}</span><Input className="h-8 w-full rounded-md px-2 text-xs" inputMode="numeric" value={customWidth} placeholder={t('video.customWidth')} onChange={event => { const width = event.target.value; setCustomWidth(width); const value = `${width}x${customHeight}`; if (isValidVideoSize(value)) { setVideoSize(value); setSizeMode('custom'); const ratio = getVideoSizeAspectRatio(value); if (isCommonVideoAspectRatio(ratio)) { setSizeAspectRatio(ratio); if (protocolProfile.parameters.aspectRatio.values.includes(ratio)) setAspectRatio(ratio); } } }} /></label>
                       <span className="pb-2 text-sm text-muted-foreground">×</span>
-                      <label className="space-y-1"><span className="text-[11px] text-muted-foreground">{t('video.customHeight')}</span><Input className="h-8 w-full rounded-md px-2 text-xs" inputMode="numeric" value={customHeight} placeholder={t('video.customHeight')} onChange={event => { const height = event.target.value; setCustomHeight(height); const value = `${customWidth}x${height}`; if (isValidVideoSize(value)) { setVideoSize(value); setSizeMode('custom'); const ratio = getVideoSizeAspectRatio(value); if (isCommonVideoAspectRatio(ratio)) setSizeAspectRatio(ratio); } }} /></label>
+                      <label className="space-y-1"><span className="text-[11px] text-muted-foreground">{t('video.customHeight')}</span><Input className="h-8 w-full rounded-md px-2 text-xs" inputMode="numeric" value={customHeight} placeholder={t('video.customHeight')} onChange={event => { const height = event.target.value; setCustomHeight(height); const value = `${customWidth}x${height}`; if (isValidVideoSize(value)) { setVideoSize(value); setSizeMode('custom'); const ratio = getVideoSizeAspectRatio(value); if (isCommonVideoAspectRatio(ratio)) { setSizeAspectRatio(ratio); if (protocolProfile.parameters.aspectRatio.values.includes(ratio)) setAspectRatio(ratio); } } }} /></label>
                     </div>}
                   </div>}
                   {protocolProfile.parameters.aspectRatio.visible && <div className="min-w-0 space-y-1.5">
@@ -1791,7 +1792,7 @@ export function VideoGenerationWorkspace({ wideMode = false, onConfigureApiKey, 
                 <div className="min-w-0"><dt className="text-muted-foreground">{t('video.totalDuration')}</dt><dd className="font-medium text-foreground">{formatVideoJobDuration(job.durationMs, job.durationUpdatedAt, job.status === '排队中' || job.status === 'processing', job.createdAt, job.completedAt, durationNowMs, locale)}</dd></div>
                 <div className="col-span-2 min-w-0 sm:col-span-4"><dt className="text-muted-foreground">{t('video.taskId')}</dt><dd className="select-all break-all font-mono text-[11px] text-foreground">{job.serverTaskId || t('video.taskIdPending')}</dd></div>
               </dl>
-              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">{job.protocol === 'xai' && job.aspectRatio && <span>{job.aspectRatio}</span>}<span>{t('video.createdAt', { time: formatJobTime(job.createdAt, locale) })}</span></div>
+              <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">{job.aspectRatio && <span>{job.aspectRatio}</span>}<span>{t('video.createdAt', { time: formatJobTime(job.createdAt, locale) })}</span></div>
               {job.error && <p className="rounded-md bg-destructive/10 px-2 py-1.5 text-xs text-destructive">{job.error}</p>}
               <div className="flex flex-wrap gap-2">
                 {job.status === 'completed' && (job.videoUrl || (getVideoJobSourceUrl(job) && !job.cached)) && <Button variant="outline" size="sm" className="gap-2" disabled={downloadingVideoJobIds.has(job.id)} onClick={() => void handleDownloadVideo(job)}>{downloadingVideoJobIds.has(job.id) ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}{t('video.download')}</Button>}

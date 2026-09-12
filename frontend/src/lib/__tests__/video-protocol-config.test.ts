@@ -104,7 +104,7 @@ describe('视频协议能力配置', () => {
 
   it('为通用视频协议提供默认附件数量和 4K 清晰度', () => {
     const config = resolveVideoProtocolConfig({});
-    for (const protocol of ['new-api', 'openai', 'legacy-openai-video']) {
+    for (const protocol of ['new-api', 'openai']) {
       expect(config.protocols[protocol].references).toEqual(expect.objectContaining({ images: 9, videos: 3, audios: 3 }));
       expect(config.protocols[protocol].parameters.resolution.values).toContain(2160);
     }
@@ -138,7 +138,7 @@ describe('视频协议能力配置', () => {
     expect(() => validateVideoProtocolRequest(config, 'new-api', 'video-model', {
       seconds: 10,
       size: '1280x720',
-      aspectRatio: '',
+      aspectRatio: '16:9',
       resolution: 720,
     }, { images: Array.from({ length: 10 }, () => ({})), videos: [], audios: [] })).toThrow('参考附件不符合当前协议限制');
   });
